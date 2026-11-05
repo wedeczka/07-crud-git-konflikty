@@ -21,18 +21,16 @@ public class AuthorController {
 
     @GetMapping
     public List<AuthorResponse> getAll() {
-        return authorService.findAll().stream()
-                .map(AuthorResponse::from)
-                .toList();
+        return authorService.findAll();
     }
 
     @GetMapping("/{id}")
     public AuthorResponse getById(@PathVariable Long id) {
-        return AuthorResponse.from(authorService.findById(id));
+        return authorService.getById(id);
     }
 
     @PostMapping
     public AuthorResponse create(@RequestBody AuthorRequest request) {
-        return AuthorResponse.from(authorService.create(request));
+        return authorService.create(request);
     }
 }

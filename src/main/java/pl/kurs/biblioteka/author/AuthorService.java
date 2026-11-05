@@ -14,16 +14,26 @@ public class AuthorService {
         this.authorRepository = authorRepository;
     }
 
-    public List<Author> findAll() {
-        return authorRepository.findAll();
+    // mapowanie na DTO wewnątrz transakcji -> lista książek (LAZY) zdąży się doczytać
+    @Transactional(readOnly = true)
+    public List<AuthorResponse> findAll() {
+        return authorRepository.findAll().stream()
+                .map(AuthorResponse::from)
+                .toList();
     }
 
+    @Transactional(readOnly = true)
+    public AuthorResponse getById(Long id) {
+        return AuthorResponse.from(findById(id));
+    }
+
+    // encja - używana wewnętrznie przez BookService
     public Author findById(Long id) {
         return authorRepository.findById(id).get();
     }
 
     @Transactional
-    public Author create(AuthorRequest request) {
-        return authorRepository.save(new Author(request.name()));
+    public AuthorResponse create(AuthorRequest request) {
+        return AuthorResponse.from(authorRepository.save(new Author(request.name())));
     }
 }

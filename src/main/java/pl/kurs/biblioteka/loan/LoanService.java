@@ -21,12 +21,15 @@ public class LoanService {
         this.bookService = bookService;
     }
 
-    public List<Loan> findByReader(String readerEmail) {
-        return loanRepository.findByReaderEmail(readerEmail);
+    @Transactional(readOnly = true)
+    public List<LoanResponse> findByReader(String readerEmail) {
+        return loanRepository.findByReaderEmail(readerEmail).stream()
+                .map(LoanResponse::from)
+                .toList();
     }
 
     @Transactional
-    public Loan borrow(Long bookId, String readerEmail) throws LoanLimitExceededException {
+    public LoanResponse borrow(Long bookId, String readerEmail) throws LoanLimitExceededException {
         Book book = bookService.findById(bookId);
         if (book.getAvailableCopies() == 0) {
             throw new IllegalStateException("Brak wolnych egzemplarzy książki " + book.getTitle());
@@ -37,7 +40,7 @@ public class LoanService {
         if (loanRepository.countByReaderEmail(readerEmail) > MAX_LOANS_PER_READER) {
             throw new LoanLimitExceededException(readerEmail, MAX_LOANS_PER_READER);
         }
-        return loan;
+        return LoanResponse.from(loan);
     }
 
     @Transactional

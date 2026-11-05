@@ -18,8 +18,16 @@ public class BookService {
         this.authorService = authorService;
     }
 
-    public List<Book> findAll() {
-        return bookRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<BookResponse> findAll() {
+        return bookRepository.findAll().stream()
+                .map(BookResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public BookResponse getById(Long id) {
+        return BookResponse.from(findById(id));
     }
 
     public Book findById(Long id) {
@@ -27,10 +35,10 @@ public class BookService {
     }
 
     @Transactional
-    public Book create(BookRequest request) {
+    public BookResponse create(BookRequest request) {
         Author author = authorService.findById(request.authorId());
         Book book = new Book(request.title(), request.isbn(), request.availableCopies(), author);
-        return bookRepository.save(book);
+        return BookResponse.from(bookRepository.save(book));
     }
 
     @Transactional

@@ -22,19 +22,17 @@ public class BookController {
 
     @GetMapping
     public List<BookResponse> getAll() {
-        return bookService.findAll().stream()
-                .map(BookResponse::from)
-                .toList();
+        return bookService.findAll();
     }
 
     @GetMapping("/{id}")
     public BookResponse getById(@PathVariable Long id) {
-        return BookResponse.from(bookService.findById(id));
+        return bookService.getById(id);
     }
 
     @PostMapping
     public BookResponse create(@RequestBody BookRequest request) {
-        return BookResponse.from(bookService.create(request));
+        return bookService.create(request);
     }
 
     @DeleteMapping("/{id}")

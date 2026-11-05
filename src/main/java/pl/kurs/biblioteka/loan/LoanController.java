@@ -22,12 +22,12 @@ public class LoanController {
     }
 
     @GetMapping
-    public List<Loan> getByReader(@RequestParam String readerEmail) {
+    public List<LoanResponse> getByReader(@RequestParam String readerEmail) {
         return loanService.findByReader(readerEmail);
     }
 
     @PostMapping
-    public Loan borrow(@RequestBody LoanRequest request) throws LoanLimitExceededException {
+    public LoanResponse borrow(@RequestBody LoanRequest request) throws LoanLimitExceededException {
         return loanService.borrow(request.bookId(), request.readerEmail());
     }
 
