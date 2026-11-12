@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.kurs.biblioteka.author.Author;
 import pl.kurs.biblioteka.author.AuthorService;
+import pl.kurs.biblioteka.common.ConflictException;
+import pl.kurs.biblioteka.common.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -31,18 +33,23 @@ public class BookService {
     }
 
     public Book findById(Long id) {
-        return bookRepository.findById(id).get();
+        return bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono książki o id " + id));
     }
 
     @Transactional
     public BookResponse create(BookRequest request) {
         Author author = authorService.findById(request.authorId());
+        if (bookRepository.existsByIsbn(request.isbn())) {
+            throw new ConflictException("Książka o podanym ISBN już istnieje");
+        }
         Book book = new Book(request.title(), request.isbn(), request.availableCopies(), author);
         return BookResponse.from(bookRepository.save(book));
     }
 
     @Transactional
     public void delete(Long id) {
-        bookRepository.deleteById(id);
+        Book book = findById(id);
+        bookRepository.delete(book);
     }
 }
