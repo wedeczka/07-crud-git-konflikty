@@ -31,17 +31,18 @@ public class LoanService {
     }
 
     @Transactional
-    public LoanResponse borrow(Long bookId, String readerEmail) throws LoanLimitExceededException {
+    public LoanResponse borrow(Long bookId, String readerEmail) {
         Book book = bookService.findById(bookId);
         if (book.getAvailableCopies() == 0) {
             throw new ConflictException("Brak wolnych egzemplarzy książki " + book.getTitle());
         }
-        book.setAvailableCopies(book.getAvailableCopies() - 1);
-        Loan loan = loanRepository.save(new Loan(book, readerEmail, LocalDate.now()));
 
-        if (loanRepository.countByReaderEmail(readerEmail) > MAX_LOANS_PER_READER) {
+        if (loanRepository.countByReaderEmail(readerEmail) >= MAX_LOANS_PER_READER) {
             throw new LoanLimitExceededException(readerEmail, MAX_LOANS_PER_READER);
         }
+
+        book.setAvailableCopies(book.getAvailableCopies() - 1);
+        Loan loan = loanRepository.save(new Loan(book, readerEmail, LocalDate.now()));
         return LoanResponse.from(loan);
     }
 
