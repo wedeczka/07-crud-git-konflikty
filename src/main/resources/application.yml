@@ -1,8 +1,8 @@
 spring:
   application:
-    name: biblioteka
+    name: library
   datasource:
-    url: jdbc:h2:mem:biblioteka
+    url: jdbc:h2:mem:library
   jpa:
     hibernate:
       ddl-auto: create-drop

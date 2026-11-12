@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>pl.kurs</groupId>
-    <artifactId>biblioteka</artifactId>
+    <artifactId>library</artifactId>
     <version>1.0.0</version>
-    <name>biblioteka</name>
+    <name>library</name>
 
     <properties>
         <java.version>21</java.version>

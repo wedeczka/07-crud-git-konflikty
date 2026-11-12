@@ -16,7 +16,7 @@ Stos: Spring Boot 4.1, Spring Data JPA (Hibernate 7), baza H2 w pamięci (dane s
 mvn spring-boot:run
 ```
 
-Aplikacja wstaje na `http://localhost:8080`. Konsola bazy: `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:mem:biblioteka`, użytkownik `sa`, bez hasła).
+Aplikacja wstaje na `http://localhost:8080`. Konsola bazy: `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:mem:library`, użytkownik `sa`, bez hasła).
 
 Przykładowe wywołania:
 
