@@ -7,11 +7,13 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,6 +33,27 @@ class ApiHttpStatusTest {
         mvc.perform(get("/books/1")).andExpect(status().isOk());
         mvc.perform(get("/loans").param("readerEmail", "http-test@example.com"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldKeepSpringMvcErrorStatuses() throws Exception {
+        mvc.perform(get("/nie-ma-takiej-sciezki")).andExpect(status().isNotFound());
+        mvc.perform(get("/books/abc")).andExpect(status().isBadRequest());
+        mvc.perform(get("/loans")).andExpect(status().isBadRequest());
+        mvc.perform(put("/books/1")).andExpect(status().isMethodNotAllowed())
+                .andExpect(header().string("Allow", containsString("GET")));
+    }
+
+    @Test
+    void shouldReturnOnlySummaryFieldsForNestedResources() throws Exception {
+        mvc.perform(get("/authors/1")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.books[0].id").isNumber())
+                .andExpect(jsonPath("$.books[0].title").isString())
+                .andExpect(jsonPath("$.books[0]", aMapWithSize(2)));
+        mvc.perform(get("/books/1")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.author.id").value(1))
+                .andExpect(jsonPath("$.author.name").value("Stanisław Lem"))
+                .andExpect(jsonPath("$.author", aMapWithSize(2)));
     }
 
     @Test
@@ -101,7 +124,8 @@ class ApiHttpStatusTest {
                                 {"title":"Duplikat","isbn":"978-83-08-04907-1","availableCopies":1,"authorId":1}
                                 """))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.blad", containsString("ISBN")));
+                .andExpect(jsonPath("$", aMapWithSize(1)))
+                .andExpect(jsonPath("$.blad").value("Książka o podanym ISBN już istnieje"));
     }
 
     @Test

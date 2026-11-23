@@ -30,8 +30,7 @@ public class LoanController {
     }
 
     @PostMapping
-    public ResponseEntity<LoanResponse> borrow(@Valid @RequestBody LoanRequest request)
-            throws LoanLimitExceededException {
+    public ResponseEntity<LoanResponse> borrow(@Valid @RequestBody LoanRequest request) {
         LoanResponse created = loanService.borrow(request.bookId(), request.readerEmail());
         return ResponseEntity.created(URI.create("/loans/" + created.id())).body(created);
     }

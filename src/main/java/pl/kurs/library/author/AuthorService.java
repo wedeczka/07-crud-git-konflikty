@@ -2,7 +2,7 @@ package pl.kurs.library.author;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.kurs.biblioteka.common.ResourceNotFoundException;
+import pl.kurs.library.common.ResourceNotFoundException;
 
 import java.util.List;
 
