@@ -6,6 +6,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -51,6 +52,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleHttpMessageNotReadable(
             HttpMessageNotReadableException e, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         return handleExceptionInternal(e, Map.of("blad", "Niepoprawna treść żądania JSON"), headers, status, request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> createResponseEntity(
+            Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        if (body == null || body instanceof ProblemDetail) {
+            String message = switch (status.value()) {
+                case 400 -> "Niepoprawne żądanie";
+                case 404 -> "Nie znaleziono zasobu";
+                case 405 -> "Niedozwolona metoda HTTP";
+                default -> "Błąd HTTP " + status.value();
+            };
+            body = Map.of("blad", message);
+        }
+        return super.createResponseEntity(body, headers, status, request);
     }
 
     @ExceptionHandler(Exception.class)

@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultMatcher;
 
 import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.containsString;
@@ -14,6 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,11 +39,20 @@ class ApiHttpStatusTest {
 
     @Test
     void shouldKeepSpringMvcErrorStatuses() throws Exception {
-        mvc.perform(get("/nie-ma-takiej-sciezki")).andExpect(status().isNotFound());
-        mvc.perform(get("/books/abc")).andExpect(status().isBadRequest());
-        mvc.perform(get("/loans")).andExpect(status().isBadRequest());
-        mvc.perform(put("/books/1")).andExpect(status().isMethodNotAllowed())
-                .andExpect(header().string("Allow", containsString("GET")));
+        ResultMatcher json = content()
+                .contentTypeCompatibleWith(MediaType.APPLICATION_JSON);
+        ResultMatcher oneField = jsonPath("$", aMapWithSize(1));
+        ResultMatcher message = jsonPath("$.blad").isNotEmpty();
+
+        mvc.perform(get("/nie-ma-takiej-sciezki"))
+                .andExpectAll(status().isNotFound(), json, oneField, message);
+        mvc.perform(get("/books/abc"))
+                .andExpectAll(status().isBadRequest(), json, oneField, message);
+        mvc.perform(get("/loans"))
+                .andExpectAll(status().isBadRequest(), json, oneField, message);
+        mvc.perform(put("/books/1"))
+                .andExpectAll(status().isMethodNotAllowed(), json, oneField, message,
+                        header().string("Allow", containsString("GET")));
     }
 
     @Test
