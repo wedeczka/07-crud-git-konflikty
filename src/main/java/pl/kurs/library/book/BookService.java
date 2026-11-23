@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.kurs.library.author.Author;
 import pl.kurs.library.author.AuthorService;
+import pl.kurs.library.common.ConflictException;
+import pl.kurs.library.common.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -18,23 +20,36 @@ public class BookService {
         this.authorService = authorService;
     }
 
-    public List<Book> findAll() {
-        return bookRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<BookResponse> findAll() {
+        return bookRepository.findAll().stream()
+                .map(BookResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public BookResponse getById(Long id) {
+        return BookResponse.from(findById(id));
     }
 
     public Book findById(Long id) {
-        return bookRepository.findById(id).get();
+        return bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono książki o id " + id));
     }
 
     @Transactional
-    public Book create(BookRequest request) {
+    public BookResponse create(BookRequest request) {
         Author author = authorService.findById(request.authorId());
+        if (bookRepository.existsByIsbn(request.isbn())) {
+            throw new ConflictException("Książka o podanym ISBN już istnieje");
+        }
         Book book = new Book(request.title(), request.isbn(), request.availableCopies(), author);
-        return bookRepository.save(book);
+        return BookResponse.from(bookRepository.save(book));
     }
 
     @Transactional
     public void delete(Long id) {
-        bookRepository.deleteById(id);
+        Book book = findById(id);
+        bookRepository.delete(book);
     }
 }

@@ -2,6 +2,7 @@ package pl.kurs.library.author;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pl.kurs.library.common.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -14,16 +15,25 @@ public class AuthorService {
         this.authorRepository = authorRepository;
     }
 
-    public List<Author> findAll() {
-        return authorRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<AuthorResponse> findAll() {
+        return authorRepository.findAll().stream()
+                .map(AuthorResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AuthorResponse getById(Long id) {
+        return AuthorResponse.from(findById(id));
     }
 
     public Author findById(Long id) {
-        return authorRepository.findById(id).get();
+        return authorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono autora o id " + id));
     }
 
     @Transactional
-    public Author create(AuthorRequest request) {
-        return authorRepository.save(new Author(request.name()));
+    public AuthorResponse create(AuthorRequest request) {
+        return AuthorResponse.from(authorRepository.save(new Author(request.name())));
     }
 }
